@@ -1,0 +1,263 @@
+<!-- Modern Dashboard Header -->
+<div class="dashboard-header">
+  <div class="header-gradient">
+    <div class="header-content">
+      <div class="welcome-section">
+        <div class="admin-avatar">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <div class="admin-info">
+          <h1 class="admin-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h1>
+          <p class="admin-role">Administrateur du Système</p>
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Système actif</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>school</mat-icon>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ enseignants.length }}</div>
+            <div class="stat-label">Enseignants</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>event</mat-icon>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ seances.length }}</div>
+            <div class="stat-label">Séances</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>assignment_turned_in</mat-icon>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ assignedSeances }}</div>
+            <div class="stat-label">Assignées</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="dashboard-main">
+  <!-- Search and Filter Bar -->
+  <div class="search-filter-bar">
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechercher...</mat-label>
+        <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Enseignants, séances...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    
+    <div class="filter-section">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Département</mat-label>
+        <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onFilterChange()">
+          <mat-option value="">Tous</mat-option>
+          <mat-option *ngFor="let dept of departments" [value]="dept">{{ dept }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Statut</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+          <mat-option value="">Tous</mat-option>
+          <mat-option value="available">Disponible</mat-option>
+          <mat-option value="assigned">Assigné</mat-option>
+          <mat-option value="busy">Occupé</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Enseignants Grid -->
+  <div class="enseignants-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <mat-icon>people</mat-icon>
+        Enseignants
+      </h2>
+      <div class="section-actions">
+        <button mat-raised-button color="primary" (click)="refreshData()">
+          <mat-icon>refresh</mat-icon>
+          Actualiser
+        </button>
+      </div>
+    </div>
+    
+    <div class="enseignants-grid" *ngIf="!isLoading">
+      <div class="enseignant-card" *ngFor="let enseignant of filteredEnseignants" 
+           [class.selected]="selectedEnseignant?.id === enseignant.id"
+           (click)="selectEnseignant(enseignant)">
+        
+        <div class="card-header">
+          <div class="enseignant-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="enseignant-info">
+            <h3 class="enseignant-name">{{ enseignant.firstName }} {{ enseignant.lastName }}</h3>
+            <p class="enseignant-department">{{ enseignant.department }}</p>
+            <div class="enseignant-status">
+              <mat-chip [class]="getEnseignantStatusClass(enseignant)">
+                {{ getEnseignantStatus(enseignant) }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card-content">
+          <div class="enseignant-stats">
+            <div class="stat-item">
+              <div class="stat-value">{{ getEnseignantSeancesCount(enseignant) }}</div>
+              <div class="stat-label">Séances assignées</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">{{ enseignant.maxSessionsPerWeek || 10 }}</div>
+              <div class="stat-label">Max/semaine</div>
+            </div>
+          </div>
+          
+          <div class="utilization-bar">
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="getEnseignantUtilization(enseignant)"
+              [color]="getUtilizationColor(enseignant)">
+            </mat-progress-bar>
+            <span class="utilization-text">{{ getEnseignantUtilization(enseignant) | number:'1.0-0' }}%</span>
+          </div>
+        </div>
+        
+        <div class="card-actions">
+          <button mat-icon-button (click)="viewEnseignantDetails(enseignant)" matTooltip="Détails">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button (click)="assignSeances(enseignant)" matTooltip="Assigner séances">
+            <mat-icon>assignment</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="loading-container" *ngIf="isLoading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement des enseignants...</p>
+    </div>
+  </div>
+
+  <!-- Séances Management -->
+  <div class="seances-section" *ngIf="selectedEnseignant">
+    <div class="section-header">
+      <h2 class="section-title">
+        <mat-icon>event</mat-icon>
+        Séances - {{ selectedEnseignant.firstName }} {{ selectedEnseignant.lastName }}
+      </h2>
+      <div class="section-actions">
+        <button mat-raised-button color="accent" (click)="openSeanceAssignment()">
+          <mat-icon>add</mat-icon>
+          Assigner des séances
+        </button>
+      </div>
+    </div>
+    
+    <div class="seances-grid">
+      <div class="seance-card" *ngFor="let seance of getEnseignantSeances(selectedEnseignant)">
+        <div class="seance-header">
+          <div class="seance-icon">
+            <mat-icon>event</mat-icon>
+          </div>
+          <div class="seance-info">
+            <h4 class="seance-title">{{ seance.subject || 'Séance' }}</h4>
+            <p class="seance-date">{{ seance.date | date:'dd/MM/yyyy' }}</p>
+            <p class="seance-time">{{ seance.startTime }} - {{ seance.endTime }}</p>
+          </div>
+        </div>
+        
+        <div class="seance-details">
+          <div class="detail-item">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ seance.location || 'Non spécifié' }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>school</mat-icon>
+            <span>{{ seance.grade?.name || 'Classe non spécifiée' }}</span>
+          </div>
+        </div>
+        
+        <div class="seance-actions">
+          <button mat-icon-button (click)="removeSeanceFromEnseignant(seance)" color="warn" matTooltip="Retirer">
+            <mat-icon>remove_circle</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Séances for Assignment -->
+  <div class="available-seances-section" *ngIf="showSeanceAssignment">
+    <div class="section-header">
+      <h2 class="section-title">
+        <mat-icon>event_available</mat-icon>
+        Séances disponibles
+      </h2>
+      <div class="section-actions">
+        <button mat-raised-button color="primary" (click)="confirmSeanceAssignment()">
+          <mat-icon>check</mat-icon>
+          Confirmer l'assignation
+        </button>
+        <button mat-button (click)="cancelSeanceAssignment()">
+          Annuler
+        </button>
+      </div>
+    </div>
+    
+    <div class="available-seances-grid">
+      <div class="available-seance-card" 
+           *ngFor="let seance of availableSeances"
+           [class.selected]="selectedSeancesForAssignment.includes(seance.id)"
+           (click)="toggleSeanceSelection(seance.id)">
+        
+        <div class="seance-checkbox">
+          <mat-checkbox [checked]="selectedSeancesForAssignment.includes(seance.id)"
+                        (change)="toggleSeanceSelection(seance.id)">
+          </mat-checkbox>
+        </div>
+        
+        <div class="seance-content">
+          <div class="seance-header">
+            <h4 class="seance-title">{{ seance.subject || 'Séance' }}</h4>
+            <div class="seance-status">
+              <mat-chip color="primary">Disponible</mat-chip>
+            </div>
+          </div>
+          
+          <div class="seance-details">
+            <div class="detail-row">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ seance.date | date:'dd/MM/yyyy' }} - {{ seance.startTime }} à {{ seance.endTime }}</span>
+            </div>
+            <div class="detail-row">
+              <mat-icon>location_on</mat-icon>
+              <span>{{ seance.location || 'Non spécifié' }}</span>
+            </div>
+            <div class="detail-row">
+              <mat-icon>school</mat-icon>
+              <span>{{ seance.grade?.name || 'Classe non spécifiée' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

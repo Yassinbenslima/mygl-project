@@ -1,0 +1,52 @@
+<!-- Modern Navbar -->
+<nav class="modern-navbar">
+  <div class="navbar-container">
+    
+    <!-- Logo Section -->
+    <div class="navbar-brand">
+      <div class="logo-circle">
+        <mat-icon>school</mat-icon>
+      </div>
+      <span class="brand-text">
+        <span class="brand-primary">Exam</span><span class="brand-secondary">Board</span>
+      </span>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="navbar-links">
+      <a routerLink="/dashboard" 
+         class="nav-link"
+         [class.active]="currentRoute.includes('/dashboard')"
+         routerLinkActive="active">
+        <mat-icon>calendar_today</mat-icon>
+        <span>Calendrier</span>
+      </a>
+      
+      <a routerLink="/dashboard?tab=voeux" 
+         class="nav-link"
+         [class.active]="currentRoute.includes('voeux')">
+        <mat-icon>favorite</mat-icon>
+        <span>Mes vœux</span>
+        <span class="badge">3</span>
+      </a>
+      
+      <a routerLink="/dashboard?tab=profile" 
+         class="nav-link"
+         [class.active]="currentRoute.includes('profile')">
+        <mat-icon>person</mat-icon>
+        <span>Profil</span>
+      </a>
+    </div>
+
+    <!-- User Menu -->
+    <div class="navbar-user">
+      <div class="user-avatar" [title]="userName">
+        {{ userInitials }}
+      </div>
+      <button mat-icon-button (click)="logout()" class="logout-btn" matTooltip="Déconnexion">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </div>
+</nav>
+

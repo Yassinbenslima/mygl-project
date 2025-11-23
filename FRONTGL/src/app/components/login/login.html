@@ -1,0 +1,76 @@
+<div class="login-container">
+  <div class="login-background">
+    <div class="background-pattern"></div>
+  </div>
+  
+  <div class="login-content">
+    <mat-card class="login-card">
+      <mat-card-header class="login-header">
+        <div class="logo-section">
+          <div class="logo-icon">
+            <mat-icon>school</mat-icon>
+          </div>
+          <h1 class="app-title">Surveillance Management</h1>
+          <p class="app-subtitle">Faculté des Sciences Économiques et de Gestion</p>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content class="login-form-content">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+          <h2 class="form-title">Connexion</h2>
+          <p class="form-subtitle">Connectez-vous pour accéder à votre espace</p>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput 
+                   type="email" 
+                   formControlName="email"
+                   placeholder="votre.email@univ-sfax.tn"
+                   autocomplete="email">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="emailError">{{ emailError }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Mot de passe</mat-label>
+            <input matInput 
+                   [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="password"
+                   placeholder="Votre mot de passe"
+                   autocomplete="current-password">
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button 
+                    matSuffix 
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="'Hide password'"
+                    [attr.aria-pressed]="hidePassword">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordError">{{ passwordError }}</mat-error>
+          </mat-form-field>
+
+          <button mat-raised-button 
+                  type="submit" 
+                  class="login-button"
+                  [disabled]="!loginForm.valid || isLoading"
+                  color="primary">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <span *ngIf="!isLoading">Se connecter</span>
+            <span *ngIf="isLoading">Connexion...</span>
+          </button>
+        </form>
+      </mat-card-content>
+
+      <mat-card-footer class="login-footer">
+        <div class="footer-info">
+          <p>© 2024 Université de Sfax - Tous droits réservés</p>
+          <p class="support-info">
+            <mat-icon>support_agent</mat-icon>
+            Support technique: support@univ-sfax.tn
+          </p>
+        </div>
+      </mat-card-footer>
+    </mat-card>
+  </div>
+</div>

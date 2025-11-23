@@ -1,0 +1,96 @@
+<!-- Main App Container -->
+<div class="app-container">
+  
+  <!-- Top Navigation Bar -->
+  <mat-toolbar *ngIf="isAuthenticated" class="app-toolbar" color="primary">
+    <div class="toolbar-content">
+      
+      <!-- Logo and Title -->
+      <div class="toolbar-left">
+        <mat-icon class="app-logo">school</mat-icon>
+        <span class="app-title">Surveillance Management</span>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="toolbar-center">
+        <button mat-button 
+                routerLink="/dashboard" 
+                routerLinkActive="active"
+                *ngIf="isTeacher">
+          <mat-icon>dashboard</mat-icon>
+          Tableau de bord
+        </button>
+        
+        <button mat-button 
+                routerLink="/admin" 
+                routerLinkActive="active"
+                *ngIf="isAdmin">
+          <mat-icon>admin_panel_settings</mat-icon>
+          Administration
+        </button>
+        
+        <button mat-button 
+                routerLink="/calendar" 
+                routerLinkActive="active">
+          <mat-icon>event</mat-icon>
+          Calendrier
+        </button>
+      </div>
+
+      <!-- User Menu -->
+      <div class="toolbar-right">
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+        
+        <mat-menu #userMenu="matMenu" class="user-menu">
+          <div class="user-menu-header">
+            <div class="user-info">
+              <mat-icon>person</mat-icon>
+              <div class="user-details">
+                <div class="user-name">{{ userDisplayName }}</div>
+                <div class="user-role" *ngIf="currentUser">{{ currentUser.role }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <mat-divider></mat-divider>
+          
+          <button mat-menu-item>
+            <mat-icon>settings</mat-icon>
+            Paramètres
+          </button>
+          
+          <button mat-menu-item>
+            <mat-icon>help</mat-icon>
+            Aide
+          </button>
+          
+          <mat-divider></mat-divider>
+          
+          <button mat-menu-item (click)="logout()" class="logout-item">
+            <mat-icon>logout</mat-icon>
+            Déconnexion
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </mat-toolbar>
+
+  <!-- Main Content Area -->
+  <div class="main-content" [class.authenticated]="isAuthenticated">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Footer -->
+  <footer *ngIf="isAuthenticated" class="app-footer">
+    <div class="footer-content">
+      <div class="footer-left">
+        <span>&copy; 2024 Université de Sfax - Faculté des Sciences Économiques et de Gestion</span>
+      </div>
+      <div class="footer-right">
+        <span>Système de Gestion des Surveillances v1.0.0</span>
+      </div>
+    </div>
+  </footer>
+  </div>

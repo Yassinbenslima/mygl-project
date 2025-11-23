@@ -1,0 +1,219 @@
+<!-- Modern Calendar Header -->
+<div class="calendar-header">
+  <mat-toolbar class="calendar-toolbar">
+    <div class="toolbar-left">
+      <button mat-icon-button (click)="navigateDate('prev')" [disabled]="isPrevDisabled">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      
+      <button mat-button (click)="goToToday()" class="today-button">
+        <mat-icon>today</mat-icon>
+        Aujourd'hui
+      </button>
+      
+      <button mat-icon-button (click)="navigateDate('next')" [disabled]="isNextDisabled">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      
+      <h2 class="current-date">{{ currentDateFormatted }}</h2>
+    </div>
+
+    <div class="toolbar-center">
+      <mat-button-toggle-group [value]="currentView.type" (change)="changeView($event.value)">
+        <mat-button-toggle *ngFor="let view of availableViews" [value]="view.type">
+          <mat-icon>{{ view.icon }}</mat-icon>
+          {{ view.title }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="toolbar-right">
+      <button mat-icon-button [matMenuTriggerFor]="filterMenu">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+      
+      <button mat-icon-button [matMenuTriggerFor]="actionMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <!-- Filter Menu -->
+  <mat-menu #filterMenu="matMenu">
+    <div class="filter-menu-content">
+      <h3 mat-menu-item>Filtres</h3>
+      
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Statut</mat-label>
+        <mat-select [(ngModel)]="statusFilter">
+          <mat-option value="">Tous</mat-option>
+          <mat-option value="AVAILABLE">Disponible</mat-option>
+          <mat-option value="SATURATED">Saturé</mat-option>
+          <mat-option value="FULL">Complet</mat-option>
+          <mat-option value="CANCELLED">Annulé</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Département</mat-label>
+        <mat-select [(ngModel)]="departmentFilter">
+          <mat-option value="">Tous</mat-option>
+          <mat-option value="ECONOMIE">Économie</mat-option>
+          <mat-option value="GESTION">Gestion</mat-option>
+          <mat-option value="COMPTABILITE">Comptabilité</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="filter-actions">
+        <button mat-button (click)="applyFilters()" color="primary">
+          <mat-icon>search</mat-icon>
+          Appliquer
+        </button>
+        <button mat-button (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Effacer
+        </button>
+      </div>
+    </div>
+  </mat-menu>
+
+  <!-- Action Menu -->
+  <mat-menu #actionMenu="matMenu">
+    <button mat-menu-item (click)="clearSelection()" [disabled]="selectedSessionsCount === 0">
+      <mat-icon>clear_all</mat-icon>
+      Effacer la sélection
+    </button>
+    <button mat-menu-item>
+      <mat-icon>print</mat-icon>
+      Imprimer
+    </button>
+    <button mat-menu-item>
+      <mat-icon>download</mat-icon>
+      Exporter
+    </button>
+  </mat-menu>
+</div>
+
+<!-- Statistics Cards -->
+<div class="statistics-section">
+  <mat-card class="stat-card">
+    <mat-card-content>
+      <div class="stat-content">
+        <mat-icon class="stat-icon total">event</mat-icon>
+        <div class="stat-info">
+          <div class="stat-number">{{ totalSessions }}</div>
+          <div class="stat-label">Séances totales</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card">
+    <mat-card-content>
+      <div class="stat-content">
+        <mat-icon class="stat-icon available">check_circle</mat-icon>
+        <div class="stat-info">
+          <div class="stat-number">{{ availableSessions }}</div>
+          <div class="stat-label">Disponibles</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="stat-card selected">
+    <mat-card-content>
+      <div class="stat-content">
+        <mat-icon class="stat-icon selected">radio_button_checked</mat-icon>
+        <div class="stat-info">
+          <div class="stat-number">{{ selectedSessionsCount }}</div>
+          <div class="stat-label">Sélectionnées</div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Legend -->
+<div class="legend-section">
+  <h3>Légende</h3>
+  <div class="legend-items">
+    <div class="legend-item">
+      <div class="legend-color available"></div>
+      <span>Disponible</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color saturated"></div>
+      <span>Saturé</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color full"></div>
+      <span>Complet</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color cancelled"></div>
+      <span>Annulé</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color selected"></div>
+      <span>Sélectionné</span>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Container -->
+<div class="calendar-container">
+  <mat-card class="calendar-card">
+    <mat-card-content>
+      <div #calendarContainer class="calendar-wrapper">
+        <!-- Loading spinner -->
+        <div *ngIf="isLoading" class="loading-overlay">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Chargement des séances...</p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Selected Sessions Summary -->
+<div *ngIf="selectedSessionsCount > 0" class="selection-summary">
+  <mat-card class="selection-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>radio_button_checked</mat-icon>
+        Séances sélectionnées ({{ selectedSessionsCount }})
+      </mat-card-title>
+      <mat-card-subtitle>
+        Cliquez sur "Soumettre les vœux" pour enregistrer vos choix
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="selected-sessions-list">
+        <div *ngFor="let session of selectedSessions; let i = index" class="selected-session-item">
+          <div class="session-info">
+            <div class="session-title">{{ session.subject }} - {{ session.grade.name }}</div>
+            <div class="session-details">
+              <span class="session-date">{{ session.date | date:'dd/MM/yyyy' }}</span>
+              <span class="session-time">{{ session.startTime }} - {{ session.endTime }}</span>
+              <span class="session-location">{{ session.location }}</span>
+            </div>
+          </div>
+          <button mat-icon-button (click)="toggleSessionSelection(session)" class="remove-button">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+    
+    <mat-card-actions>
+      <button mat-raised-button color="primary" class="submit-button">
+        <mat-icon>send</mat-icon>
+        Soumettre les vœux
+      </button>
+      <button mat-button (click)="clearSelection()">
+        Effacer la sélection
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
